@@ -249,7 +249,7 @@ This section will also include a discussion on interoperability.
 # BoW Overview
 The ODSA aims to define an open physical and logical interface for chiplets, as shown in 
 Figure [#fig-odsa-stack] to enable chiplets from multiple vendors to interoperate and be 
-integrated in a multi-die package. The Bunch of Wires is an open D2D PHY option in the
+integrated in multi-die packages. The Bunch of Wires is an open Die-to-Die (D2D) PHY option in the
 interface. The logical component of the ODSA interface aims to 
 support protocols used commonly for the two most common chiplet use cases, package 
 aggregation and die disaggregation across a wide range of open and proprietary D2D PHYs
@@ -271,7 +271,15 @@ In a system, the BoW is expected to be driven by a media-access controller (MAC)
 logic clock as shown in Figure [#fig-bow-components] and may be implemented as a 
 combination of a control path and datapath.
 
-~ Figure {#fig-bow-components; caption: "BoW components and interfaces"}
+~ Framed {color: blue}
+To do: We need to change all "MAC"" references to "Link Layer" 
+including in Figure [#fig-bow-components].
+
+Also, Figure [#fig-bow-components] shows serializers on the wrong side of the Link layer 
+interface.
+~
+
+~ Figure {#fig-bow-components; caption: "Interfaces of two BoW slices"}
 ![bowspec_figcomponents]
 ~
 
@@ -312,20 +320,23 @@ BoW with an adapter to transport PCIe transactions as an underlay.
 [bowspec_figcomponentspcie]: images/fig-bow_pcie.jpg {width:auto; max-width: 100%}
 
 
-## BoW Physical Interface Block Diagram
+## BoW Chip-to-Chip Signals
 
-~ Figure { #fig-slice_signals; caption: "BoW Single Slice Signals" }
+Figure [#fig-slice_signals] shows the signals at the BoW chip-to-chip interface for one slice.
+
+~ Figure { #fig-slice_signals; caption: "Chip-to-Chip Signals in a Single BoW Slice" }
 ![slice_signals]
 [slice_signals]: images/bowspec_figure_slice_signals.PNG { width:auto; max-width:70% }
 ~
 
+
 ## BoW Modes
 
-There are multiple BoW modes. All modes must be 
+There are multiple BoW modes. All implementations must be 
 interoperable with the minimum definition. All modes are source synchronous 
-parallel interfaces using a differential clock that may operate at multiple.
+parallel interfaces using a differential clock.
 The range of operating frequencies for a mode must be documented in a data sheet. 
-frequencies. Beyond the basic mode, adding termination provides higher performance 
+Beyond the basic mode, adding termination provides higher throughput 
 per mm of beachfront bandwidth but is more complex to design. It is also possible
 to get high performance by using 
 
@@ -349,11 +360,13 @@ It is also possible for basic BoW configuration implemented with advanced packag
 between physically close chiplets to offer a higher data rate per wire than a terminated 
 BoW interface in some configurations. A high level view of the BoW Interface Data-rate ranges is shown below:
 
-~ Center
-![bowspec_figure2]
+Figure [#fig-rate_vs-lengths] shows the signals at the BoW chip-to-chip interface for one slice.
+
+~ Figure { #fig-rate_vs-lengths; caption: "BoW Data Rates vs. Length, Mode and Package Type" }
+![rate_vs-length]
+[rate_vs-length]: images/bowspec_rate_vs_length.PNG { width:auto; max-width:70% }
 ~
 
-[bowspec_figure2]: images/bowspec_figure2.jpg "bowspec_figure2" { width:auto; max-width:100% }
 
 
 ### BoW Basic Mode 
@@ -370,22 +383,27 @@ minimize signal reflections to enable higher data rates and longer wires.
 
 ### Modes and Data Rates
 
-Bow links shall follow the specifications in the following table.
+BoW supports the modes and data rates in the following table:
 
 ~ TableFigure {#tab-rates1; caption: "BoW Modes and Data Rates"; width:100%;  }
-|--------------|------------|-----------|-----------|-------------|-------|
-|  Mode        |Package     |Clock rate | Data rate | Termination | Reach |
-+:------------:+:----------:+:----------+:----------+:------------+-------+
-| BoW Basic    | Interposer | 1-2.5 GHz | 2-5 Gbps  | Optional    | 2 mm  |
-|              |            | 1-4 GHz   | 2-8 Gbps  |             | 1 mm  |
-+--------------+------------+-----------+-----------+-------------+-------+
-| BoW Basic    | Laminate   | 1-2.5 GHz | 2-5 Gbps  | Source      | 10 mm |
-|              |            | 1-4 GHz   | 2-8 Gbps  |             | 5 mm  |
-+--------------+------------+-----------+-----------+-------------+-------+
-| BoW Fast     | Laminate   | 1-8 GHz   | 2-16 Gbps | Double      | 50 mm |
-|--------------|------------|-----------|-----------|-------------+-------|
+|--------------|------------|-----------|----------------|-------------|-------|
+|  Mode        |Package     |Clock rate | Data rate      | Termination | Reach |
++:------------:+:----------:+:----------+:---------------+:------------+-------+
+| BoW Basic    | Interposer | 1-2.5 GHz | 2-5 Gbps/wire  | Optional    | 2 mm  |
+|              |            | 1-4 GHz   | 2-8 Gbps/wire  |             | 1 mm  |
++--------------+------------+-----------+----------------+-------------+-------+
+| BoW Basic    | Laminate   | 1-2.5 GHz | 2-5 Gbps/wire  | Source      | 10 mm |
+|              |            | 1-4 GHz   | 2-8 Gbps/wire  |             | 5 mm  |
++--------------+------------+-----------+----------------+-------------+-------+
+| BoW Fast     | Laminate   | 1-8 GHz   | 2-16 Gbps/wire | Double      | 50 mm |
+|--------------|------------|-----------|----------------|-------------+-------|
 ~
-<Note this table appears in two places!!>
+
+All BoW implementations must support the minimum 1 GHz clock rate, 
+2 Gbps data rate using source-terminated I/O.
+Otherwise, implementations are free to determine which modes and speeds to support.
+For ease of interoperation, data rate multiples of 
+N Gbps should be supported for integers N>=2 up to the max rate for that implementation.
 
 All BoW links are DDR (double data rate). 
 DDR is defined as one data bit transmitted for each rising and each falling edge of the clock.
@@ -395,52 +413,14 @@ technologies with approximately 25 um line and space rules.
 "Interposer" is intended to include silicon interposer and similar technologies 
 with approximately 1 um line and space rules.
 
-### Supported Data Rates
-
-BOW supports the following data rates:
-
-~ TableFigure {#tab-rates2; caption: "BoW Modes and Data Rates"; width:100%;  }
-|--------------|------------|-----------|-----------|-------------|-------|
-|  Mode        |Package     |Clock rate | Data rate | Termination | Reach |
-+:------------:+:----------:+:----------+:----------+:------------+-------+
-| BoW Basic    | Interposer | 1-2.5 GHz | 2-5 Gbps  | Optional    | 2 mm  |
-|              |            | 1-4 GHz   | 2-8 Gbps  |             | 1 mm  |
-+--------------+------------+-----------+-----------+-------------+-------+
-| BoW Basic    | Laminate   | 1-2.5 GHz | 2-5 Gbps  | Source      | 10 mm |
-|              |            | 1-4 GHz   | 2-8 Gbps  |             | 5 mm  |
-+--------------+------------+-----------+-----------+-------------+-------+
-| BoW Fast     | Laminate   | 1-8 GHz   | 2-16 Gbps | Double      | 50 mm |
-|--------------|------------|-----------|-----------|-------------+-------|
-~
-<Note this table appears in two places!!>
-
-
-~ Framed {color: blue}
-Ken sez: I copied this table from the HotI 2020 paper, but what is our 
-supporting data for 8 Gbps and 50 mm cases?
-~
-
-All BoW implementations must support the minimum 1 GHz clock rate, 
-2 Gbps data rate using source-terminated I/O.
-For ease of interoperation, data rate multiples of 
-N Gbps should be supported for integer N>=2 to the max rate for that implementation.
-
-
-
 # Signal Definitions
 
-Each BoW slice consists of a differential clock pair, 16 single-ended data wires, 
+As seen in Figure [#fig-slice_signals] and the following table,
+each BoW slice consists of a differential clock pair, 16 single-ended data wires, 
 and optional FEC and AUX wires. Each BoW slice is unidirectional when in operation.
-A chiplet may be designed with with Rx-only and Tx-only slices, or
+A chiplet may be designed with with Rx-only slices and Tx-only slices, or
 each slice may have both Tx and Rx capability which is configured at runtime. 
 A bidirectional link is composed of some number of slices configured for Rx and some for Tx.
-
-FEC (Forward Error Correction) is an optional signal that allows using FEC to 
-improve the bit error rate (BER).  AUX is an optional signal that can be used for purposes
-such as DBI, flow control, redundancy, etc. Chiplets A and B will need to agree on
-the details on FEC and AUX usage.
-
-A BoW link is only specified for operation inside a package for reach and ESD reasons.
 
 ~ TableFigure {#tab-signals; caption: "BoW Signals"; }
 |--------------|---------|------------|-------------|
@@ -457,10 +437,22 @@ A BoW link is only specified for operation inside a package for reach and ESD re
 |--------------|---------|------------|-------------|
 ~
 
+FEC (Forward Error Correction) is an optional signal that allows using FEC to 
+improve the bit error rate (BER).  AUX is an optional signal that can be used for purposes
+such as DBI, flow control, redundancy, etc. Chiplets A and B will need to agree on
+the details on FEC and AUX usage which is not specified here.
 
+A BoW link is only specified for operation inside a package for reach and ESD reasons.
 
 
 ## Bow Physical Interface
+
+~ Framed {color: blue}
+Ed: This inclusion of both Rx and Tx signals in this section comes from AIB but 
+conflicts with the Rx-or-Tx nature of the BoW slice. We need to define these at 
+the slice level or at the link (multiple slice) level but not mix them up.
+~
+
 
 The BoW interface comprises either a transmit or receive slice with three signal types:
 
@@ -902,18 +894,19 @@ different ordering of power and ground bumps;
 multiple power and ground rows.
 
 ~ TableFigure {#tab-signals; caption: "BoW Signals"; }
-|--------------|---------|------------|-------------|
-| Function     | # Signals| Signal Name| Notes      |
-+:-------------+:-------:+:-----------+:------------+
-| Clock        | 2       | CLK+, CLK- | Differential|
-|--------------|---------|------------|-------------|
-| Data         | 16      | D[15:0]    |             |
-|--------------|---------|------------|-------------|
-|Forward Error | 1       |FEC         | Optional    |
-|Correction    |         |            |             |
-+--------------+---------+------------+-------------|
-|Auxilliary    |1        |AUX         | Optional    |
-|--------------|---------|------------|-------------|
+|--------------|----------|------------|-------------|
+| Function     | # Signals| Signal Name| Notes       |
++:-------------+:--------:+:-----------+:------------+
+| Clock        | 2        | CLK+, CLK- | Differential|
+|--------------|----------|------------|-------------|
+| Data         | 16       | D[15:0]    |             |
+|--------------|----------|------------|-------------|
+|Forward Error | 1        |FEC         | Optional    |
+|Correction    |          |            |             |
++--------------+----------+------------+-------------|
+|Auxilliary    |1         |AUX         | Optional    |
+|--------------|----------|------------|-------------|
+~
 
 An alternate slice arrangement may be to place the Tx and Rx slices side by side at the 
 chip edges. This would take up more chip edge, but allow all the signals to run on the same 
@@ -951,10 +944,6 @@ due to low via density passing through the thick central core layer.
 
 
 ## Signal Ordering 
-
-~ Framed {color: blue}
-Ken sez: I copied this table from the HotI 2020 paper, but what is our 
-supporting data for 8 Gbps cases?
 
 A BoW interface must conform to these wire and slice order rules at the edge of the chip:
 
