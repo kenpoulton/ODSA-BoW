@@ -570,7 +570,7 @@ minimize signal reflections to enable higher data rates and longer wires.
 
 Bow links shall follow the specifications in the following table.
 
-~ TableFigure {#tab-rates1; caption: "BoW Modes and Data Rates"; width:100%;  }
+~ TableFigure {#tab-rates1; caption: "BoW Modes and Data Rates for Laminate Packaging"; width:100%;  }
 |--------------|------------|-----------|-----------|-------------|-------|
 |  Mode        |Package     |Clock rate | Data rate | Termination | Reach |
 +:------------:+:----------:+:----------+:----------+:------------+-------+
@@ -585,7 +585,7 @@ Bow links shall follow the specifications in the following table.
 The following datarates and reach targets are recommended for BoW implementation using
 advanced packaging:
 
-~ TableFigure {#tab-rates1; caption: "BoW Modes and Data Rates"; width:100%;  }
+~ TableFigure {#tab-rates1; caption: "BoW Modes and Data Rates for Advanced Packaging"; width:100%;  }
 |--------------|------------|-----------|-----------|-------------|-------|
 |  Mode        |Package     |Clock rate | Data rate | Termination | Reach |
 +:------------:+:----------:+:----------+:----------+:------------+-------+
@@ -619,11 +619,6 @@ BOW supports the following data rates:
 ~
 <Note this table appears in two places!!>
 
-
-~ Framed {color: blue}
-Ken sez: I copied this table from the HotI 2020 paper, but what is our 
-supporting data for 8 Gbps and 50 mm cases?
-~
 
 All BoW implementations must support the minimum 1 GHz clock rate, 
 2 Gbps data rate using source-terminated I/O.
@@ -709,8 +704,9 @@ multiple power and ground rows.
 |Forward Error | 1       |FEC         | Optional    |
 |Correction    |         |            |             |
 +--------------+---------+------------+-------------|
-|Auxilliary    |1        |AUX         | Optional    |
+|Auxiliary     |1        |AUX         | Optional    |
 |--------------|---------|------------|-------------|
+~
 
 An alternate slice arrangement may be to place the Tx and Rx slices side by side at the 
 chip edges. This would take up more chip edge, but allow all the signals to run on the same 
@@ -748,10 +744,6 @@ due to low via density passing through the thick central core layer.
 
 
 ## Signal Ordering 
-
-~ Framed {color: blue}
-Ken sez: I copied this table from the HotI 2020 paper, but what is our 
-supporting data for 8 Gbps cases?
 
 A BoW interface must conform to these wire and slice order rules at the edge of the chip:
 
@@ -864,23 +856,17 @@ BoW Basic interfaces do not require per-wire alignment - the signals
 within a slice are aligned sufficiently well by matching their paths.
 BoW Fast interfaces may need per-wire delay adjustment or per-slicer clock adjustment.
 
-Clock skew between the slices in each direction of a link depends on the implementation of the
-TxClk distribution to all the Tx slices. 
+Clock skew between the slices in each direction of a link depends mainly 
+on the implementation of the TxClk distribution to all the Tx slices. 
 That is, for the data flow from Chiplet A to Chiplet B, 
 the TxClk distribution on Chiplet A sets the 
 the clock skew of the Tx slices on Chiplet A and the clock skew of the Rx slices on Chiplet B,
-and vice versa for flow from B to A. This skew must be no more than 3 ns.
+and vice versa for flow from B to A. This skew must be no more than 250 ps per stack 
+(it may accumulate along the chip edge).
 There is no specification of the skew between TxClk on Chiplet A vs TxClk on Chiplet B.
 
-~ Framed {color: blue}
-Ed: 3 ns is sufficient to cover Tx clock distribution skew across a 30 mm chip edge.
-Specifying a skew limit seems useful to clarify the requirements that will be imposed on 
-the bonding FIFO in the Rx Link layer.
-Do we want to weaken this to a Should?
-~
-
-On both the Tx and Rx sides, the Link layer must include a Clock Domain Crossing (CDC) to 
-align the data between CoreClk and PhyClk. 
+On both the Tx and Rx sides, either the PHY or the Link Layer must include a 
+Clock Domain Crossing (CDC) to align the data between CoreClk and PhyClk. 
 These CDCs must also be able to absorb the slice-to-slice clock skew and 
 core clock distribution skew across the whole link.
 
@@ -920,7 +906,7 @@ The CLK and data signals at the receiving slice bumps must be able to meet these
 |         |                            | (300 mV)         | (75 mV)          |
 | V~ov~   | Data and CLK overshoot     | 25%(V~hi~-V~lo~) | 50%(V~hi~-V~lo~) |
 |         |                            | (188 mV)         | (188 mV)         |
-| t~skew~ | Slice to slice CLK skew    | 3 ns             | 3 ns             |
+| t~skew~ | Slice to slice CLK skew    | 250 ps/stack     | 250 ps /stack    |
 |         |                            |                  |                  |
 
 
@@ -939,8 +925,9 @@ The evaluation of jitter must include all possible jitter contributors,
 including reference clock, clock distribution networks, 
 any DCC, PLL and DLL jitter, power-supply noise and switching noise.
 
-The slice to slice clock skew t~skew~ across the width of a BoW link must be less than 3 ns.
-This is dominated by the TxClk distribution network.
+The slice to slice clock skew t~skew~ across the width of a BoW link must be 
+less than 250 ps per stack, which may accumulate along the chip edge.
+This is dominated by the TxClk distribution network, including lines buffers and DCCs.
 
 Since these signals do not leave the package, these values must be verified with simulation.
 
@@ -950,9 +937,14 @@ If the slice implementation allows programmatic control of the receiver voltage
 thresholds, varying those values may provide vertical margin information.
 
 ~framed {color:blue}
-Should we require programmatic DLL control to enable margin testing?  
-Should we require threshold voltage control to enable margin testing?
+Should we require programmatic DLL control to enable timing margin testing?  
+Should we require threshold voltage control to enable voltage margin testing?
 ~
+
+<XX  COMMENT
+  
+This whole section is commented out now. An example timing budget like this might
+be useful to implementors, but it probably does not below in a spec.
 
 ### Reference Slice Timing
 
@@ -960,31 +952,6 @@ Should we require threshold voltage control to enable margin testing?
 Is this section worth keeping?
 ~
 
-
-<XX  COMMENT
-~ Framed {color: blue}
-
-This is a list of possible specs within a slice
-
-* Clock to data alignment   NA before align, 50 ps after align = 0.20 UI
-* data to data alignment    18 ps
-  * mismatch: 0.6 ps rms at Rx input, 1.1 ps rums at Rx output
-  * fanout skew: 1 mm = 6 ps as a tline
-  * clock distn within slice: 0.6 mm = 7 ps as an RC line
-* clock rise/fall time   80 ps = 0.30 UI
-* clock duty cycle   50+-5% 
-* CLK+ vs CLK- skew    10 ps = 0.04 UI
-* clock random jitter  10 ps rms = 0.04 UI rms
-* clock bounded jitter  20 ps pp = 0.08 UI pp
-* Eye: 400 mV, 50 ps ??    330 mV, 50 ps barely works in 65 nm sim at 8 Gbps
-* clock slip   0 ppm
-
-Slice to slice:
-
-* slice to slice clock skew across width of a link   < 3 ns 
-   * 2.5 ns to go 30 mm, across 22 slices
-~
-XX END COMMENT>
 
 The following table shows clock and data timing for a 4 Gbps BoW Basic 
 reference design in 65 nm CMOS on 
@@ -994,6 +961,7 @@ laminate packaging. These values are for CLK and data bits at the bumps of the B
 <This table generated with https://www.tablesgenerator.com/markdown_tables# >
 <any plus signs need a backslash added manually >
 <column justification needs a ":" in the first "---" line added manually>
+<XX
 
 | Spec                          | Value  | Normalized Value | Condition                                 |
 |:------------------------------|--------|------------------|:------------------------------------------|
@@ -1021,6 +989,7 @@ DataEyeWidth - BitToBitSkewFanout - BitToBitSkewMismatch
 - CLKrandomJitter - DataToDataSkew < 0.10 UI
 ~
 
+XX END COMMENT>
 
 # Electrical Specifications
 
@@ -1459,7 +1428,11 @@ While the tx_mac_rdy signal is de-asserted:
 [Note: because this is not a hardwired signal, there
  is a latency in response depending on the polling frequency of the I2C sideband interface. 
  Need to investigate whether there is a mechanism where each chiplet can become a 
- Leader dynamically and broadcast changes in status to its link partner]
+ Leader dynamically and broadcast changes in status to its link partner.
+ 
+ E.g., there could be an interrupt signal from each chiplet to the controller that informs the controller
+ that it should use the I2C to find out what event has occured.
+ ]
 ~
 
 * Data transmission shall halt
