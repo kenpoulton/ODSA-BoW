@@ -1135,7 +1135,33 @@ then stack to stack counterclockwise.
 
 These rules allow BoW chiplets to be connected without signal reordering regardless of chiplet rotations.
 
-## Checkerboard Slice Pattern
+## Slice Pattern for Symmetric Links
+For symmetric bidirectional links, an arrangement of alternating Tx and Rx stacks should be used.
+Figure [#fig-alt_columns] shows a link with 8 Tx and 8 Rx slices on each side. 
+
+~ Figure { #fig-alt_columns; caption: "Alternate Columns Pattern of Tx and Rx Slices in a Link" }
+![bowspec_figure_alt_columns_4x4_link]
+[bowspec_figure_alt_columns_4x4_link]: images/bowspec_figure_alt_columns_4x4_link.png "bowspec_figure_alt_columns_4x4_link" { width:auto; max-width:90% }
+~
+
+Using BoW-256 slices, this would make a link with 2 Tb/s each direction.
+
+~ TableFigure {#tab-sizes; caption: "Dimensions for the link in Figure [#fig-alt_columns]"; width:100%;  }
+|------------------|----------------|----------------|
+| Dimension        |130 um laminate | 40 um advanced |
++:----------------:+:--------------:+:---------------+
+| Width along edge | 5.2 mm         | 1.35 mm        |
++------------------+----------------+----------------+
+| Depth from edge  | 1.6 mm         | 0.42 mm        |
+|------------------|----------------|----------------|
+~
+
+
+The number of slices per stack that can be used depends on the number of package layers and type of 
+packaging technology selected.
+
+~ Framed {color: blue}
+## OLD - Checkerboard Slice Pattern - OLD
 
 For bidirectional links with more than one stack on each side, a checkerboard pattern of 
 Tx and Rx slices should be used (Figure [#fig-checkerboard]).
@@ -1147,6 +1173,7 @@ for 8 Tx and 8 Rx slices on each chiplet.
 ~ Figure { #fig-checkerboard; caption: "Checkerboard Pattern of Tx and Rx Slices in a 1.25 Tb/s Link" }
 ![checkerboard]
 [checkerboard]: images/bowspec_figure_checkerboard.PNG { width:auto; max-width:70% }
+~
 
 ~
 
@@ -1154,13 +1181,6 @@ An alternate approach may be used: design every slice to operate as either Rx or
 after assembly or upon powerup. 
 This allows complete flexibility in interoperability and also provides an opportunity for
 wafer-test loopback testing.
-
-
-In BoW-64 at 4 Gb/s/wire, the link in Figure [#fig-checkerboard] provides a total of 1.0 Tb/s.
-In an organic substrate using the hexagonal bump pattern of Figure [#fig-min_link]
-with a bump pitch is 130 um, 
-the total edge width is 4.16 mm without AUX and FEC, or 5.2 mm with; the depth from the edge is 1.35 mm.
-In an interposer, if the bump pitch is 40 um, the edge width is 1.28 or 1.60 mm and the depth is 0.42 mm.
 
 # Timing
 
